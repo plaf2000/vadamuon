@@ -46,9 +46,9 @@ for mc in (1, 10)
 for bs in (1, 10, 100)
 for prec in (1e-2, 2e-2, 5e-2, 1e-1, 2e-1, 5e-1, 1e0, 2e0, 5e0, 1e1, 2e1, 5e1, 1e2, 2e2, 5e2)]
 
-####################################
-## Run experiemtents sequentially ##
-####################################
+##################################
+## Run experiments sequentially ##
+##################################
 
 for i, (hidden_sizes, mc, bs, prec) in enumerate(grid):
 
