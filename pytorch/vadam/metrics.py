@@ -144,6 +144,7 @@ def avneg_elbo_bernoulli(logits_list, y, train_set_size, kl):
 def elbo_categorical(logits_list, y, train_set_size, kl):
     mc_loglik = mc_loss(pred_list=logits_list, y=y, loss_fn=stoch_loglik_categorical, train_set_size=train_set_size)
     elbo = mc_loglik - kl
+    print("MC Loglik:", -mc_loglik.item()/train_set_size, "KL:", kl.item()/train_set_size)
     return elbo
 
 def avneg_elbo_categorical(logits_list, y, train_set_size, kl):

@@ -21,7 +21,7 @@ class BostonPresplit(data.Dataset):
         x = data[:,idx_features]
         y = data[:,idx_target]
         
-        split_num = re.findall("\d+", data_set)[0]
+        split_num = re.findall(r"\d+", data_set)[0]
 
         self.idx_train = os.path.join(self.data_folder, "index_train_" + split_num + ".txt")
         self.idx_test = os.path.join(self.data_folder, "index_test_" + split_num + ".txt")

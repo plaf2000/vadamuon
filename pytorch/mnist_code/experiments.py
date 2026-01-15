@@ -9,7 +9,7 @@ from vadam.models import MLP, BNN, IndividualGradientMLP
 import vadam.metrics as metrics
 
 from torch.optim import Adam
-from vadam.optimizers import Vadam, VOGN
+from vadam.optimizers import Vadam, VOGN, VadaMuon
 
 from vadam.utils import goodfellow_backprop_ggn
 
@@ -205,7 +205,7 @@ class Experiment():
                         self._evaluate_model(self.metric_history, x_train, y_train, x_test, y_test)
 
                 # Store batch objective
-                batch_objective.append(loss.detach().cpu().item())                    
+                batch_objective.append(loss.detach().cpu().item())               
             
             # Compute and store average objective from last epoch
             self.objective_history.append(np.mean(batch_objective))
@@ -440,6 +440,113 @@ class ExperimentVadamMLPClass(Experiment):
                                prec_init = optim_params['prec_init'],
                                num_samples = train_params['train_mc_samples'],
                                train_set_size = self.data.get_train_size())
+
+        # Initialize metric history
+        self.metric_history = dict(elbo_neg_ave = [],
+                                   train_pred_logloss=[], train_pred_accuracy=[],
+                                   test_pred_logloss=[], test_pred_accuracy=[])
+
+        # Initialize final metric
+        self.final_metric = dict(elbo_neg_ave = [],
+                                 train_pred_logloss=[], train_pred_accuracy=[],
+                                 test_pred_logloss=[], test_pred_accuracy=[])
+
+    def _evaluate_model(self, metric_dict, x_train, y_train, x_test, y_test):
+        
+        # Normalize train x
+        if self.normalize_x:
+            x_train = (x_train-self.x_means)/self.x_stds
+        
+        # Get train predictions
+        logits_list = self.optimizer.get_mc_predictions(self.model.forward, inputs = x_train, mc_samples = self.train_params['eval_mc_samples'], ret_numpy=False)
+
+        # Store train metrics
+        metric_dict['train_pred_logloss'].append(metrics.predictive_avneg_loglik_categorical(logits_list, y_train).detach().cpu().item())
+        metric_dict['train_pred_accuracy'].append(metrics.softmax_predictive_accuracy(logits_list, y_train).detach().cpu().item())
+        metric_dict['elbo_neg_ave'].append(metrics.avneg_elbo_categorical(logits_list, y_train, train_set_size = self.data.get_train_size(), kl = self.optimizer.kl_divergence()).detach().cpu().item())
+
+        # Normalize test x
+        if self.normalize_x:
+            x_test = (x_test-self.x_means)/self.x_stds
+        
+        # Get test predictions
+        logits_list = self.optimizer.get_mc_predictions(self.model.forward, inputs = x_test, mc_samples = self.train_params['eval_mc_samples'], ret_numpy=False)
+
+        # Store test metrics
+        metric_dict['test_pred_logloss'].append(metrics.predictive_avneg_loglik_categorical(logits_list, y_test).detach().cpu().item())
+        metric_dict['test_pred_accuracy'].append(metrics.softmax_predictive_accuracy(logits_list, y_test).detach().cpu().item())
+        
+    def _print_progress(self, epoch):
+
+        # Print progress
+        print('Epoch [{}/{}], Neg. Ave. ELBO: {:.4f}, Logloss: {:.4f}, Test Logloss: {:.4f}'.format(
+                epoch+1,
+                self.train_params['num_epochs'],
+                self.metric_history['elbo_neg_ave'][-1],
+                self.metric_history['train_pred_logloss'][-1],
+                self.metric_history['test_pred_logloss'][-1]))
+        
+    def _closure(self, x, y):
+        self.optimizer.zero_grad()
+        logits = self.prediction(x)
+        loss = self.objective(logits, y)
+        loss.backward()
+        return loss
+    
+
+##########################################
+## Define experiment class for VadaMuon ##
+##########################################
+
+class ExperimentVadaMuonMLPClass(Experiment):
+
+    def __init__(self, data_set, model_params, train_params, optim_params, evals_per_epoch=1, normalize_x=False, results_folder="./results", data_folder=DEFAULT_DATA_FOLDER, use_cuda=torch.cuda.is_available()):
+        super(type(self), self).__init__(data_set, model_params, train_params, optim_params, evals_per_epoch, normalize_x, results_folder, data_folder, use_cuda)
+
+        # Define name for experiment class
+        experiment_name = "vadamuon_mlp_class"
+
+        # Define folder name for results
+        self.folder_name = folder_name(experiment_name, data_set, model_params, train_params, optim_params, results_folder)
+
+        # Initialize model
+        self.model = MLP(input_size = self.data.num_features,
+                         hidden_sizes = model_params['hidden_sizes'],
+                         output_size = self.data.num_classes,
+                         act_func = model_params['act_func'])
+        if use_cuda:
+            self.model = self.model.cuda()
+
+        # Define prediction function
+        def prediction(x):
+            logits = self.model(x)
+            return logits
+        self.prediction = prediction
+
+        # Define objective
+        self.objective = metrics.avneg_loglik_categorical
+
+        is_muon_param = []
+        
+        for name, param in self.model.named_parameters():
+            # Muon for 2D weight matrices in hidden layers
+            # Exclude output layers, embeddings, and biases
+            is_muon_param.append(param.ndim >= 2 and 
+                "output_layer" not in name and 
+                "head" not in name and
+                "embed" not in name.lower() and
+                "bias" not in name.lower())
+
+        # Initialize optimizer
+        self.optimizer = VadaMuon(self.model.parameters(),
+                                is_muon_param = is_muon_param,
+                               lr = optim_params['learning_rate'],
+                               betas = optim_params['betas'],
+                               prior_prec = model_params['prior_prec'],
+                               prec_init = optim_params['prec_init'],
+                               num_samples = train_params['train_mc_samples'],
+                               train_set_size = self.data.get_train_size())
+        
 
         # Initialize metric history
         self.metric_history = dict(elbo_neg_ave = [],
