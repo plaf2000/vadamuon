@@ -531,9 +531,11 @@ class ExperimentVadaMuonMLPClass(Experiment):
         for i, (name, param) in enumerate(self.model.named_parameters()):
             # Muon for 2D weight matrices in hidden layers
             # Exclude output layers, embeddings, and biases
-            # if i == 0:
-            #     is_muon_param.append(False)
-            #     continue
+
+            # Layer between input and first hidden layer is not Muon
+            if optim_params.get('skip_first_layer', True) and i == 0:
+                is_muon_param.append(False)
+                continue
             is_muon_param.append(param.ndim >= 2 and 
                 "output_layer" not in name and 
                 "head" not in name and
@@ -550,6 +552,7 @@ class ExperimentVadaMuonMLPClass(Experiment):
                                prior_prec = model_params['prior_prec'],
                                prec_init = optim_params['prec_init'],
                                num_samples = train_params['train_mc_samples'],
+                               use_rms=optim_params.get('use_rms', False),
                                train_set_size = self.data.get_train_size())
         
 

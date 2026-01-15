@@ -183,21 +183,22 @@ class VadaMuon(Optimizer):
                 # Decay the first and second moment running average coefficient
                 exp_avg.mul_(beta1).add_(grad + tlambda * original_values[pid], alpha=1 - beta1)
 
-                if True and self.is_muon_param[pid]:
+                if self.is_muon_param[pid]:
                     exp_avg_ns = zeropower_via_newtonschulz5(exp_avg, steps=group['ns_depth'])
-                    # scale = exp_avg.norm() / exp_avg_ns.norm()
                     exp_avg_sq.mul_(beta2).add_(exp_avg_ns * exp_avg_ns, alpha=1 - beta2)
-                    scale = .2 * (exp_avg.size(-2) / exp_avg.size(-1))**0.5 / (exp_avg.norm() + 1e-7) if group['use_rms'] else 1.0
+                    if group['use_rms']:
+                        scale = .2 * (exp_avg_ns.size(-2) * exp_avg_ns.size(-1))**0.5 / (exp_avg_ns.norm() + 1e-7)
+                    else:
+                        scale = max(1, exp_avg_ns.size(-2) / exp_avg_ns.size(-1))**0.5
                     exp_avg_ns.mul_(scale)
-                    bias_correction1 = 1 - beta1 ** state['step']
-                    bias_correction2 = 1 - beta2 ** state['step'] 
+                    
                 else:
                     exp_avg_ns = exp_avg
 
                     exp_avg_sq.mul_(beta2).add_(grad2, alpha=1 - beta2)
 
-                    bias_correction1 = 1 - beta1 ** state['step']
-                    bias_correction2 = 1 - beta2 ** state['step']
+                bias_correction1 = 1 - beta1 ** state['step']
+                bias_correction2 = 1 - beta2 ** state['step']
 
                 numerator = exp_avg_ns.div(bias_correction1)
                 denominator = exp_avg_sq.div(bias_correction2).sqrt().add(tlambda)
@@ -278,8 +279,6 @@ class VadaMuon(Optimizer):
     def _kl_gaussian(self, p_mu, p_sigma, q_mu, q_sigma):
         var_ratio = (p_sigma / q_sigma).pow(2)
         t1 = ((p_mu - q_mu) / q_sigma).pow(2)
-        contributions = torch.tensor([torch.sum(var_ratio) - torch.sum(var_ratio.log()), torch.sum(t1) - 1])
-        # print("KL contributions - variance:", contributions[0].item(), "mean:", contributions[1].item())
         return 0.5 * torch.sum((var_ratio + t1 - 1 - var_ratio.log()))
 
     def kl_divergence(self):
@@ -291,8 +290,7 @@ class VadaMuon(Optimizer):
             for p in group['params']:
                 state = self.state[p]
                 prec0 = group['prior_prec']
-                prec = self.train_set_size * state['exp_avg_sq'] + group['prior_prec']
-                # print(torch.sum(p**2))
+                prec = self.train_set_size * state['exp_avg_sq'] + group['prior_prec']                
                 kl += self._kl_gaussian(p_mu = p, 
                                         p_sigma = 1. / torch.sqrt(prec), 
                                         q_mu = 0., 
