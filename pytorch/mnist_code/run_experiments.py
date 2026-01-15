@@ -26,7 +26,7 @@ train_params = {'num_epochs': None,
                 'seed': 123}
 
 # Optimizer parameters
-optim_params = {'learning_rate': 0.001,
+optim_params = {'learning_rate': 0.0001,
                 'betas': (0.9,0.999),
                 'prec_init': None}
 optim_params_vogn = {'learning_rate': 0.001,

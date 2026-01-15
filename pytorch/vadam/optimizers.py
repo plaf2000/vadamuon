@@ -183,7 +183,7 @@ class VadaMuon(Optimizer):
                 # Decay the first and second moment running average coefficient
                 exp_avg.mul_(beta1).add_(grad + tlambda * original_values[pid], alpha=1 - beta1)
 
-                if False and self.is_muon_param[pid]:
+                if True and self.is_muon_param[pid]:
                     exp_avg_ns = zeropower_via_newtonschulz5(exp_avg, steps=group['ns_depth'])
                     # scale = exp_avg.norm() / exp_avg_ns.norm()
                     exp_avg_sq.mul_(beta2).add_(exp_avg_ns * exp_avg_ns, alpha=1 - beta2)
@@ -278,6 +278,8 @@ class VadaMuon(Optimizer):
     def _kl_gaussian(self, p_mu, p_sigma, q_mu, q_sigma):
         var_ratio = (p_sigma / q_sigma).pow(2)
         t1 = ((p_mu - q_mu) / q_sigma).pow(2)
+        contributions = torch.tensor([torch.sum(var_ratio) - torch.sum(var_ratio.log()), torch.sum(t1) - 1])
+        # print("KL contributions - variance:", contributions[0].item(), "mean:", contributions[1].item())
         return 0.5 * torch.sum((var_ratio + t1 - 1 - var_ratio.log()))
 
     def kl_divergence(self):
@@ -290,6 +292,7 @@ class VadaMuon(Optimizer):
                 state = self.state[p]
                 prec0 = group['prior_prec']
                 prec = self.train_set_size * state['exp_avg_sq'] + group['prior_prec']
+                # print(torch.sum(p**2))
                 kl += self._kl_gaussian(p_mu = p, 
                                         p_sigma = 1. / torch.sqrt(prec), 
                                         q_mu = 0., 

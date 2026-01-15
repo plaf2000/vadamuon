@@ -528,14 +528,19 @@ class ExperimentVadaMuonMLPClass(Experiment):
 
         is_muon_param = []
         
-        for name, param in self.model.named_parameters():
+        for i, (name, param) in enumerate(self.model.named_parameters()):
             # Muon for 2D weight matrices in hidden layers
             # Exclude output layers, embeddings, and biases
+            # if i == 0:
+            #     is_muon_param.append(False)
+            #     continue
             is_muon_param.append(param.ndim >= 2 and 
                 "output_layer" not in name and 
                 "head" not in name and
                 "embed" not in name.lower() and
                 "bias" not in name.lower())
+
+        print("Using Muon for parameters:", is_muon_param)
 
         # Initialize optimizer
         self.optimizer = VadaMuon(self.model.parameters(),
