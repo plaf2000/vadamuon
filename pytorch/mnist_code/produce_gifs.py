@@ -80,7 +80,7 @@ for i, (hidden_sizes, bs) in enumerate(grid):
     animated_gif = AnimatedGif(figsize=figsize)
     plot_every = 10
     
-    for prec in (1e-2, 2e-2, 5e-2, 1e-1, 2e-1, 5e-1, 1e0, 2e0, 5e0, 1e1, 2e1, 5e1, 1e2, 2e2, 5e2):
+    for prec in (1e-2, 1e-1, 1e0, 1e1, 1e2):
         
         model_params['hidden_sizes'] = hidden_sizes
         model_params['prior_prec'] = prec
@@ -97,17 +97,17 @@ for i, (hidden_sizes, bs) in enumerate(grid):
             train_params['num_epochs'] = 200
             evals_per_epoch = 6
         
-        metrics = load_metric_history(experiment_name = "bbb_mlp_class",
-                                      data_set = data_set,
-                                      model_params = model_params,
-                                      train_params = train_params,
-                                      optim_params = optim_params,
-                                      results_folder = results_folder)
-        num_evals = len(metrics['test_pred_logloss'])
-        idx = np.arange(start = 0, stop = num_evals, step = plot_every)
-        epoch = (idx+1) * train_params['num_epochs'] / num_evals
-        met = np.array(metrics['test_pred_logloss'])
-        plot_bbb, = plt.plot(epoch, met[idx]/np.log(10), color = 'k', linestyle = '-', linewidth=2)
+        # metrics = load_metric_history(experiment_name = "bbb_mlp_class",
+        #                               data_set = data_set,
+        #                               model_params = model_params,
+        #                               train_params = train_params,
+        #                               optim_params = optim_params,
+        #                               results_folder = results_folder)
+        # num_evals = len(metrics['test_pred_logloss'])
+        # idx = np.arange(start = 0, stop = num_evals, step = plot_every)
+        # epoch = (idx+1) * train_params['num_epochs'] / num_evals
+        # met = np.array(metrics['test_pred_logloss'])
+        # plot_bbb, = plt.plot(epoch, met[idx]/np.log(10), color = 'k', linestyle = '-', linewidth=2, label='BBVI')
         
         
         metrics = load_metric_history(experiment_name = "vadam_mlp_class",
@@ -120,10 +120,23 @@ for i, (hidden_sizes, bs) in enumerate(grid):
         idx = np.arange(start = 0, stop = num_evals, step = plot_every)
         epoch = (idx+1) * train_params['num_epochs'] / num_evals
         met = np.array(metrics['test_pred_logloss'])
-        plot_vadam, = plt.plot(epoch, met[idx]/np.log(10), color = 'r', linestyle = '-', linewidth=2)
+        plot_vadam, = plt.plot(epoch, met[idx]/np.log(10), color = 'r', linestyle = '-', linewidth=2, label='Vadam')
+
+        metrics = load_metric_history(experiment_name = "vadamuon_skipfirst_no_rms_mlp_class",
+                                      data_set = data_set,
+                                      model_params = model_params,
+                                      train_params = train_params,
+                                      optim_params = optim_params,
+                                      results_folder = results_folder)
+        num_evals = len(metrics['test_pred_logloss'])
+        idx = np.arange(start = 0, stop = num_evals, step = plot_every)
+        epoch = (idx+1) * train_params['num_epochs'] / num_evals
+        met = np.array(metrics['test_pred_logloss'])
+        plot_vadamuon, = plt.plot(epoch, met[idx]/np.log(10), color = 'r', linestyle = '-', linewidth=2, label='VadaMuon')
         plot_title = plt.text(train_params['num_epochs']/2, 2.02, "Precision: " + str(prec), horizontalalignment='center', verticalalignment='bottom', fontdict=dict(fontsize=title_size))
-        
-        animated_gif.add([plot_bbb, plot_vadam, plot_title])
+
+
+        animated_gif.add([plot_vadamuon, plot_vadam, plot_title])
     
     plt.rc('text', usetex = True)
     plt.xlim([0,train_params['num_epochs']])
@@ -132,7 +145,7 @@ for i, (hidden_sizes, bs) in enumerate(grid):
     plt.yticks(fontsize=tick_size)
     plt.xlabel("Epoch", fontdict=dict(fontsize=label_size))
     plt.ylabel(r'Test $\log_{10}$loss', fontdict=dict(fontsize=label_size))
-    plt.legend(["BBVI", "Vadam"], fontsize=legend_size, loc='upper center')
+    plt.legend(fontsize=legend_size, loc='upper center')
     plt.grid(True,which="both",color='0.75')
     plt.tight_layout()
     animated_gif.save('animations/layer' + str(len(hidden_sizes)) + '_batchsize'+str(bs)+'.gif')

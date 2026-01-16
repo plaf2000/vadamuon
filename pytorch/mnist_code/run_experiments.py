@@ -1,4 +1,4 @@
-from experiments import ExperimentVadaMuonMLPClass, ExperimentVadamMLPClass, ExperimentBBBMLPClass
+from experiments import ExperimentVadaMuonMLPClass, ExperimentVadamMLPClass, ExperimentBBBMLPClass, exists_metric_history
 
 ####################
 ## Set parameters ##
@@ -35,6 +35,7 @@ optim_params_vogn = {'learning_rate': 0.001,
 
 # Evaluations per epoch
 evals_per_epoch = None
+
 
 #################
 ## Define grid ##
@@ -85,9 +86,10 @@ for i, (hidden_sizes, mc, bs, prec) in enumerate(grid):
                                                  evals_per_epoch = evals_per_epoch,
                                                  normalize_x = False)
             
-            experiment.run(log_metric_history = True)
+            if not exists_metric_history(experiment.experiment_name, model_params, train_params, optim_params, results_folder, data_set):
+                experiment.run(log_metric_history = True)
             
-            experiment.save(save_final_metric = True,
+                experiment.save(save_final_metric = True,
                             save_metric_history = True,
                             save_objective_history = False,
                             save_model = False,
@@ -100,22 +102,24 @@ for i, (hidden_sizes, mc, bs, prec) in enumerate(grid):
     
     # Run Vadam
 
-    # experiment = ExperimentVadamMLPClass(results_folder = results_folder, 
-    #                                      data_folder = data_folder,
-    #                                      data_set = data_set, 
-    #                                      model_params = model_params, 
-    #                                      train_params = train_params, 
-    #                                      optim_params = optim_params,
-    #                                      evals_per_epoch = evals_per_epoch,
-    #                                      normalize_x = False)
+
+    experiment = ExperimentVadamMLPClass(results_folder = results_folder, 
+                                         data_folder = data_folder,
+                                         data_set = data_set, 
+                                         model_params = model_params, 
+                                         train_params = train_params, 
+                                         optim_params = optim_params,
+                                         evals_per_epoch = evals_per_epoch,
+                                         normalize_x = False)
+    if not exists_metric_history(experiment.experiment_name, model_params, train_params, optim_params, results_folder, data_set):
     
-    # experiment.run(log_metric_history = True)
+        experiment.run(log_metric_history = True)
     
-    # experiment.save(save_final_metric = True,
-    #                 save_metric_history = True,
-    #                 save_objective_history = False,
-    #                 save_model = False,
-    #                 save_optimizer = False)
+        experiment.save(save_final_metric = True,
+                    save_metric_history = True,
+                    save_objective_history = False,
+                    save_model = False,
+                    save_optimizer = False)
     
     # Run BBVI
     # experiment = ExperimentBBBMLPClass(results_folder = results_folder, 

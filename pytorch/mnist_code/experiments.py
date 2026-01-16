@@ -64,6 +64,12 @@ def load_metric_history(experiment_name, data_set, model_params, train_params, o
     # Return history
     return metric_history
 
+def exists_metric_history(experiment_name, model_params, train_params, optim_params, results_folder, data_set = "mnist"):
+    folder = folder_name(experiment_name, data_set, model_params, train_params, optim_params, results_folder)
+    file = os.path.join(folder, 'metric_history.pkl')
+
+    return os.path.exists(file)
+
 def load_objective_history(experiment_name, data_set, model_params, train_params, optim_params, results_folder="./results", silent_fail=False):
 
     # Folder to load history from
