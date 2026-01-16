@@ -50,6 +50,7 @@ for prec in (1e-2, 1e-1, 1e0, 1e1, 1e2)][::-1]
 ##################################
 ## Run experiments sequentially ##
 ##################################
+     
 
 for i, (hidden_sizes, mc, bs, prec) in enumerate(grid):
 
@@ -87,6 +88,7 @@ for i, (hidden_sizes, mc, bs, prec) in enumerate(grid):
                                                  normalize_x = False)
             
             if not exists_metric_history(experiment.experiment_name, model_params, train_params, optim_params, results_folder, data_set):
+                print(f"Running experiment {i+1}/{len(grid)*3}: {experiment.experiment_name=}, {hidden_sizes=}, {mc=}, {bs=}, {prec=}, {use_rms=}")
                 experiment.run(log_metric_history = True)
             
                 experiment.save(save_final_metric = True,
@@ -112,7 +114,7 @@ for i, (hidden_sizes, mc, bs, prec) in enumerate(grid):
                                          evals_per_epoch = evals_per_epoch,
                                          normalize_x = False)
     if not exists_metric_history(experiment.experiment_name, model_params, train_params, optim_params, results_folder, data_set):
-    
+        print(f"Running experiment {i+1}/{len(grid)*3}: {experiment.experiment_name=}, {hidden_sizes=}, {mc=}, {bs=}, {prec=}")
         experiment.run(log_metric_history = True)
     
         experiment.save(save_final_metric = True,

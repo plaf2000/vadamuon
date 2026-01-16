@@ -146,7 +146,7 @@ class Experiment():
 
     def run(self, log_metric_history=True):
 
-        print("Running experiment", getattr(self, 'experiment_name', ''))
+        # print("Running experiment", getattr(self, 'experiment_name', ''))
 
         # Prepare
         num_epochs = self.train_params['num_epochs']
