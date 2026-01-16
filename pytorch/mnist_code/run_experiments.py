@@ -126,19 +126,19 @@ for i, (hidden_sizes, mc, bs, prec) in enumerate(grid):
                     save_optimizer = False)
     
     # Run BBVI
-    experiment = ExperimentBBBMLPClass(results_folder = results_folder, 
-                                       data_folder = data_folder,
-                                       data_set = data_set, 
-                                       model_params = model_params, 
-                                       train_params = train_params, 
-                                       optim_params = optim_params,
-                                       evals_per_epoch = evals_per_epoch,
-                                       normalize_x = False)
+    # experiment = ExperimentBBBMLPClass(results_folder = results_folder, 
+    #                                    data_folder = data_folder,
+    #                                    data_set = data_set, 
+    #                                    model_params = model_params, 
+    #                                    train_params = train_params, 
+    #                                    optim_params = optim_params,
+    #                                    evals_per_epoch = evals_per_epoch,
+    #                                    normalize_x = False)
     
-    experiment.run(log_metric_history = True)
+    # experiment.run(log_metric_history = True)
     
-    experiment.save(save_final_metric = True,
-                    save_metric_history = True,
-                    save_objective_history = False,
-                    save_model = False,
-                    save_optimizer = False)
+    # experiment.save(save_final_metric = True,
+    #                 save_metric_history = True,
+    #                 save_objective_history = False,
+    #                 save_model = False,
+    #                 save_optimizer = False)
