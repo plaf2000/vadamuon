@@ -44,7 +44,7 @@ grid = [(hidden_sizes, mc, bs, prec)
 for hidden_sizes in ([32, 16], [400,400], [64, 32, 16])
 for mc in (1, 10)
 for bs in (100, 10, 1)
-for prec in (1e-2, 2e-2, 5e-2, 1e-1, 2e-1, 5e-1, 1e0, 2e0, 5e0, 1e1, 2e1, 5e1, 1e2, 2e2, 5e2)]
+for prec in (1e-2, 1e-1, 1e0, 1e1, 1e2)][::-1]
 
 ##################################
 ## Run experiments sequentially ##
@@ -71,59 +71,51 @@ for i, (hidden_sizes, mc, bs, prec) in enumerate(grid):
     # Run VadaMuon
 
     # With RMS scaling
-    optim_params['use_rms'] = True
-    experiment = ExperimentVadaMuonMLPClass(results_folder = results_folder, 
-                                         data_folder = data_folder,
-                                         data_set = data_set, 
-                                         model_params = model_params, 
-                                         train_params = train_params, 
-                                         optim_params = optim_params,
-                                         evals_per_epoch = evals_per_epoch,
-                                         normalize_x = False)
-    
-    experiment.run(log_metric_history = True)
-    
-    experiment.save(save_final_metric = True,
-                    save_metric_history = True,
-                    save_objective_history = False,
-                    save_model = False,
-                    save_optimizer = False)
 
-    # Without RMS scaling
-    optim_params['use_rms'] = False
-    experiment = ExperimentVadaMuonMLPClass(results_folder = results_folder, 
-                                         data_folder = data_folder,
-                                         data_set = data_set, 
-                                         model_params = model_params, 
-                                         train_params = train_params, 
-                                         optim_params = optim_params,
-                                         evals_per_epoch = evals_per_epoch,
-                                         normalize_x = False)
+    for use_rms in [True, False]:
+        # for skip_first in [True, False]:
+            optim_params['use_rms'] = use_rms
+            # optim_params['skip_first_layer'] = skip_first
+            experiment = ExperimentVadaMuonMLPClass(results_folder = results_folder, 
+                                                 data_folder = data_folder,
+                                                 data_set = data_set, 
+                                                 model_params = model_params, 
+                                                 train_params = train_params, 
+                                                 optim_params = optim_params,
+                                                 evals_per_epoch = evals_per_epoch,
+                                                 normalize_x = False)
+            
+            experiment.run(log_metric_history = True)
+            
+            experiment.save(save_final_metric = True,
+                            save_metric_history = True,
+                            save_objective_history = False,
+                            save_model = False,
+                            save_optimizer = False)
     
-    experiment.run(log_metric_history = True)
+    ###################################################################################
+    # Since we already have the results for Vadam and BBVI (./results/results.zip),   #
+    # skip these two experiments.                                                     #
+    ###################################################################################
     
-    experiment.save(save_final_metric = True,
-                    save_metric_history = True,
-                    save_objective_history = False,
-                    save_model = False,
-                    save_optimizer = False)
+    # Run Vadam
 
-    experiment = ExperimentVadamMLPClass(results_folder = results_folder, 
-                                         data_folder = data_folder,
-                                         data_set = data_set, 
-                                         model_params = model_params, 
-                                         train_params = train_params, 
-                                         optim_params = optim_params,
-                                         evals_per_epoch = evals_per_epoch,
-                                         normalize_x = False)
+    # experiment = ExperimentVadamMLPClass(results_folder = results_folder, 
+    #                                      data_folder = data_folder,
+    #                                      data_set = data_set, 
+    #                                      model_params = model_params, 
+    #                                      train_params = train_params, 
+    #                                      optim_params = optim_params,
+    #                                      evals_per_epoch = evals_per_epoch,
+    #                                      normalize_x = False)
     
-    experiment.run(log_metric_history = True)
+    # experiment.run(log_metric_history = True)
     
-    experiment.save(save_final_metric = True,
-                    save_metric_history = True,
-                    save_objective_history = False,
-                    save_model = False,
-                    save_optimizer = False)
+    # experiment.save(save_final_metric = True,
+    #                 save_metric_history = True,
+    #                 save_objective_history = False,
+    #                 save_model = False,
+    #                 save_optimizer = False)
     
     # Run BBVI
     # experiment = ExperimentBBBMLPClass(results_folder = results_folder, 
