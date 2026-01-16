@@ -140,6 +140,8 @@ class Experiment():
 
     def run(self, log_metric_history=True):
 
+        print("Running experiment", getattr(self, 'experiment_name', ''))
+
         # Prepare
         num_epochs = self.train_params['num_epochs']
         batch_size = self.train_params['batch_size']
@@ -315,10 +317,10 @@ class ExperimentBBBMLPClass(Experiment):
         super(type(self), self).__init__(data_set, model_params, train_params, optim_params, evals_per_epoch, normalize_x, results_folder, data_folder, use_cuda)
 
         # Define name for experiment class
-        experiment_name = "bbb_mlp_class"
+        self.experiment_name = "bbb_mlp_class"
 
         # Define folder name for results
-        self.folder_name = folder_name(experiment_name, data_set, model_params, train_params, optim_params, results_folder)
+        self.folder_name = folder_name(self.experiment_name, data_set, model_params, train_params, optim_params, results_folder)
 
         # Initialize model
         self.model = BNN(input_size = self.data.num_features,
@@ -410,11 +412,10 @@ class ExperimentVadamMLPClass(Experiment):
         super(type(self), self).__init__(data_set, model_params, train_params, optim_params, evals_per_epoch, normalize_x, results_folder, data_folder, use_cuda)
 
         # Define name for experiment class
-        experiment_name = "vadam_mlp_class"
+        self.experiment_name = "vadam_mlp_class"
 
         # Define folder name for results
-        self.folder_name = folder_name(experiment_name, data_set, model_params, train_params, optim_params, results_folder)
-
+        self.folder_name = folder_name(self.experiment_name, data_set, model_params, train_params, optim_params, results_folder)
         # Initialize model
         self.model = MLP(input_size = self.data.num_features,
                          hidden_sizes = model_params['hidden_sizes'],
@@ -504,10 +505,16 @@ class ExperimentVadaMuonMLPClass(Experiment):
         super(type(self), self).__init__(data_set, model_params, train_params, optim_params, evals_per_epoch, normalize_x, results_folder, data_folder, use_cuda)
 
         # Define name for experiment class
-        experiment_name = "vadamuon_mlp_class"
+        self.skip_first = optim_params.get('skip_first_layer', True)
+        self.use_rms = optim_params.get('use_rms', False)
+
+        skip_str = "_skipfirst" if self.skip_first else "_all"
+        rms_str = "_rms" if self.use_rms else "_no_rms"
+
+        self.experiment_name = f"vadamuon{skip_str}{rms_str}_mlp_class"
 
         # Define folder name for results
-        self.folder_name = folder_name(experiment_name, data_set, model_params, train_params, optim_params, results_folder)
+        self.folder_name = folder_name(self.experiment_name, data_set, model_params, train_params, optim_params, results_folder)
 
         # Initialize model
         self.model = MLP(input_size = self.data.num_features,
@@ -533,7 +540,7 @@ class ExperimentVadaMuonMLPClass(Experiment):
             # Exclude output layers, embeddings, and biases
 
             # Layer between input and first hidden layer is not Muon
-            if optim_params.get('skip_first_layer', True) and i == 0:
+            if self.skip_first and i == 0:
                 is_muon_param.append(False)
                 continue
             is_muon_param.append(param.ndim >= 2 and 
