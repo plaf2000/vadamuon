@@ -74,7 +74,7 @@ if __name__ == "__main__":
 
         # With RMS scaling
 
-        for use_rms in [True, False]:
+        for j, use_rms in enumerate([True, False]):
             # for skip_first in [True, False]:
                 optim_params['use_rms'] = use_rms
                 # optim_params['skip_first_layer'] = skip_first
@@ -88,7 +88,7 @@ if __name__ == "__main__":
                                                     normalize_x = False)
                 
                 if not exists_metric_history(experiment.experiment_name, model_params, train_params, optim_params, results_folder, data_set):
-                    print(f"Running experiment {i+1}/{len(grid)*3}: {experiment.experiment_name=}, {hidden_sizes=}, {mc=}, {bs=}, {prec=}, {use_rms=}")
+                    print(f"Running experiment {i*3+j+1}/{len(grid)*3}: {experiment.experiment_name=}, {hidden_sizes=}, {mc=}, {bs=}, {prec=}, {use_rms=}")
                     experiment.run(log_metric_history = True)
                 
                     experiment.save(save_final_metric = True,
@@ -104,6 +104,10 @@ if __name__ == "__main__":
         
         # Run Vadam
 
+        # Only consider relevant parameters
+        optim_params = {
+             k: v for k, v in optim_params.items() if k in ['learning_rate', 'betas', 'prec_init']
+        }
 
         experiment = ExperimentVadamMLPClass(results_folder = results_folder, 
                                             data_folder = data_folder,
@@ -114,7 +118,7 @@ if __name__ == "__main__":
                                             evals_per_epoch = evals_per_epoch,
                                             normalize_x = False)
         if not exists_metric_history(experiment.experiment_name, model_params, train_params, optim_params, results_folder, data_set):
-            print(f"Running experiment {i+1}/{len(grid)*3}: {experiment.experiment_name=}, {hidden_sizes=}, {mc=}, {bs=}, {prec=}")
+            print(f"Running experiment {i*3+3}/{len(grid)*3}: {experiment.experiment_name=}, {hidden_sizes=}, {mc=}, {bs=}, {prec=}")
             experiment.run(log_metric_history = True)
         
             experiment.save(save_final_metric = True,
