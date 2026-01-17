@@ -51,92 +51,92 @@ for prec in (1e-2, 1e-1, 1e0, 1e1, 1e2)][::-1]
 ## Run experiments sequentially ##
 ##################################
      
+if __name__ == "__main__":
+    for i, (hidden_sizes, mc, bs, prec) in enumerate(grid):
 
-for i, (hidden_sizes, mc, bs, prec) in enumerate(grid):
+        model_params['hidden_sizes'] = hidden_sizes
+        model_params['prior_prec'] = prec
+        optim_params['prec_init'] = prec
+        optim_params_vogn['prec_init'] = prec
+        train_params['train_mc_samples'] = mc
+        train_params['batch_size'] = bs
+        if bs==1:
+            train_params['num_epochs'] = 2
+            evals_per_epoch = 600
+        elif bs==10:
+            train_params['num_epochs'] = 20
+            evals_per_epoch = 60
+        elif bs==100:
+            train_params['num_epochs'] = 200
+            evals_per_epoch = 6
+        
+        # Run VadaMuon
 
-    model_params['hidden_sizes'] = hidden_sizes
-    model_params['prior_prec'] = prec
-    optim_params['prec_init'] = prec
-    optim_params_vogn['prec_init'] = prec
-    train_params['train_mc_samples'] = mc
-    train_params['batch_size'] = bs
-    if bs==1:
-        train_params['num_epochs'] = 2
-        evals_per_epoch = 600
-    elif bs==10:
-        train_params['num_epochs'] = 20
-        evals_per_epoch = 60
-    elif bs==100:
-        train_params['num_epochs'] = 200
-        evals_per_epoch = 6
-    
-    # Run VadaMuon
+        # With RMS scaling
 
-    # With RMS scaling
-
-    for use_rms in [True, False]:
-        # for skip_first in [True, False]:
-            optim_params['use_rms'] = use_rms
-            # optim_params['skip_first_layer'] = skip_first
-            experiment = ExperimentVadaMuonMLPClass(results_folder = results_folder, 
-                                                 data_folder = data_folder,
-                                                 data_set = data_set, 
-                                                 model_params = model_params, 
-                                                 train_params = train_params, 
-                                                 optim_params = optim_params,
-                                                 evals_per_epoch = evals_per_epoch,
-                                                 normalize_x = False)
-            
-            if not exists_metric_history(experiment.experiment_name, model_params, train_params, optim_params, results_folder, data_set):
-                print(f"Running experiment {i+1}/{len(grid)*3}: {experiment.experiment_name=}, {hidden_sizes=}, {mc=}, {bs=}, {prec=}, {use_rms=}")
-                experiment.run(log_metric_history = True)
-            
-                experiment.save(save_final_metric = True,
-                            save_metric_history = True,
-                            save_objective_history = False,
-                            save_model = False,
-                            save_optimizer = False)
-    
-    ###################################################################################
-    # Since we already have the results for Vadam and BBVI (./results/results.zip),   #
-    # skip these two experiments.                                                     #
-    ###################################################################################
-    
-    # Run Vadam
+        for use_rms in [True, False]:
+            # for skip_first in [True, False]:
+                optim_params['use_rms'] = use_rms
+                # optim_params['skip_first_layer'] = skip_first
+                experiment = ExperimentVadaMuonMLPClass(results_folder = results_folder, 
+                                                    data_folder = data_folder,
+                                                    data_set = data_set, 
+                                                    model_params = model_params, 
+                                                    train_params = train_params, 
+                                                    optim_params = optim_params,
+                                                    evals_per_epoch = evals_per_epoch,
+                                                    normalize_x = False)
+                
+                if not exists_metric_history(experiment.experiment_name, model_params, train_params, optim_params, results_folder, data_set):
+                    print(f"Running experiment {i+1}/{len(grid)*3}: {experiment.experiment_name=}, {hidden_sizes=}, {mc=}, {bs=}, {prec=}, {use_rms=}")
+                    experiment.run(log_metric_history = True)
+                
+                    experiment.save(save_final_metric = True,
+                                save_metric_history = True,
+                                save_objective_history = False,
+                                save_model = False,
+                                save_optimizer = False)
+        
+        ###################################################################################
+        # Since we already have the results for Vadam and BBVI (./results/results.zip),   #
+        # skip these two experiments.                                                     #
+        ###################################################################################
+        
+        # Run Vadam
 
 
-    experiment = ExperimentVadamMLPClass(results_folder = results_folder, 
-                                         data_folder = data_folder,
-                                         data_set = data_set, 
-                                         model_params = model_params, 
-                                         train_params = train_params, 
-                                         optim_params = optim_params,
-                                         evals_per_epoch = evals_per_epoch,
-                                         normalize_x = False)
-    if not exists_metric_history(experiment.experiment_name, model_params, train_params, optim_params, results_folder, data_set):
-        print(f"Running experiment {i+1}/{len(grid)*3}: {experiment.experiment_name=}, {hidden_sizes=}, {mc=}, {bs=}, {prec=}")
-        experiment.run(log_metric_history = True)
-    
-        experiment.save(save_final_metric = True,
-                    save_metric_history = True,
-                    save_objective_history = False,
-                    save_model = False,
-                    save_optimizer = False)
-    
-    # Run BBVI
-    # experiment = ExperimentBBBMLPClass(results_folder = results_folder, 
-    #                                    data_folder = data_folder,
-    #                                    data_set = data_set, 
-    #                                    model_params = model_params, 
-    #                                    train_params = train_params, 
-    #                                    optim_params = optim_params,
-    #                                    evals_per_epoch = evals_per_epoch,
-    #                                    normalize_x = False)
-    
-    # experiment.run(log_metric_history = True)
-    
-    # experiment.save(save_final_metric = True,
-    #                 save_metric_history = True,
-    #                 save_objective_history = False,
-    #                 save_model = False,
-    #                 save_optimizer = False)
+        experiment = ExperimentVadamMLPClass(results_folder = results_folder, 
+                                            data_folder = data_folder,
+                                            data_set = data_set, 
+                                            model_params = model_params, 
+                                            train_params = train_params, 
+                                            optim_params = optim_params,
+                                            evals_per_epoch = evals_per_epoch,
+                                            normalize_x = False)
+        if not exists_metric_history(experiment.experiment_name, model_params, train_params, optim_params, results_folder, data_set):
+            print(f"Running experiment {i+1}/{len(grid)*3}: {experiment.experiment_name=}, {hidden_sizes=}, {mc=}, {bs=}, {prec=}")
+            experiment.run(log_metric_history = True)
+        
+            experiment.save(save_final_metric = True,
+                        save_metric_history = True,
+                        save_objective_history = False,
+                        save_model = False,
+                        save_optimizer = False)
+        
+        # Run BBVI
+        # experiment = ExperimentBBBMLPClass(results_folder = results_folder, 
+        #                                    data_folder = data_folder,
+        #                                    data_set = data_set, 
+        #                                    model_params = model_params, 
+        #                                    train_params = train_params, 
+        #                                    optim_params = optim_params,
+        #                                    evals_per_epoch = evals_per_epoch,
+        #                                    normalize_x = False)
+        
+        # experiment.run(log_metric_history = True)
+        
+        # experiment.save(save_final_metric = True,
+        #                 save_metric_history = True,
+        #                 save_objective_history = False,
+        #                 save_model = False,
+        #                 save_optimizer = False)
