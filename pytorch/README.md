@@ -7,7 +7,7 @@ The environment used for running the experiment was created using [uv](https://d
 In case uv is installed, run the following:
 ```
 uv sync
-pip install -e .
+uv pip install -e .
 ```
 The `-e` flag makes it possible to modify the library, and modifications will be loaded on the fly.
 
