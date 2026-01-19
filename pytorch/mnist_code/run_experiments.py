@@ -29,9 +29,6 @@ train_params = {'num_epochs': None,
 optim_params = {'learning_rate': 0.001,
                 'betas': (0.9,0.999),
                 'prec_init': None}
-optim_params_vogn = {'learning_rate': 0.001,
-                     'beta': 0.999,
-                     'prec_init': None}
 
 # Evaluations per epoch
 evals_per_epoch = None
@@ -52,11 +49,10 @@ for prec in (1e-2, 1e-1, 1e0, 1e1, 1e2)]
 #####################
 
 def experiment_loop(i, hidden_sizes, mc, bs, prec, grid_size = len(grid)):
-    global model_params, train_params, optim_params, optim_params_vogn, evals_per_epoch, data_set, data_folder, results_folder
+    global model_params, train_params, optim_params, evals_per_epoch, data_set, data_folder, results_folder
     model_params['hidden_sizes'] = hidden_sizes
     model_params['prior_prec'] = prec
     optim_params['prec_init'] = prec
-    optim_params_vogn['prec_init'] = prec
     train_params['train_mc_samples'] = mc
     train_params['batch_size'] = bs
     if bs==1:
@@ -84,8 +80,8 @@ def experiment_loop(i, hidden_sizes, mc, bs, prec, grid_size = len(grid)):
                                                 evals_per_epoch = evals_per_epoch,
                                                 normalize_x = False)
             
-            if not exists_metric_history(experiment.experiment_name, model_params, train_params, optim_params, results_folder, data_set):
-                print(f"Running experiment {i*3+j+1}/{len(grid)*3}: {experiment.experiment_name=}, {hidden_sizes=}, {mc=}, {bs=}, {prec=}, {use_rms=}")
+            if not exists_metric_history(experiment.experiment_name, data_set, model_params, train_params, optim_params, results_folder):
+                print(f"Running experiment {i*3+j+1}/{grid_size*3}: {experiment.experiment_name=}, {hidden_sizes=}, {mc=}, {bs=}, {prec=}, {use_rms=}")
                 experiment.run(log_metric_history = True)
             
                 experiment.save(save_final_metric = True,
@@ -109,8 +105,8 @@ def experiment_loop(i, hidden_sizes, mc, bs, prec, grid_size = len(grid)):
                                         optim_params = optim_params,
                                         evals_per_epoch = evals_per_epoch,
                                         normalize_x = False)
-    if not exists_metric_history(experiment.experiment_name, model_params, train_params, optim_params, results_folder, data_set):
-        print(f"Running experiment {i*3+3}/{len(grid)*3}: {experiment.experiment_name=}, {hidden_sizes=}, {mc=}, {bs=}, {prec=}")
+    if not exists_metric_history(experiment.experiment_name, data_set, model_params, train_params, optim_params, results_folder):
+        print(f"Running experiment {i*3+3}/{grid_size*3}: {experiment.experiment_name=}, {hidden_sizes=}, {mc=}, {bs=}, {prec=}")
         experiment.run(log_metric_history = True)
     
         experiment.save(save_final_metric = True,
