@@ -128,7 +128,7 @@ def create_animation(metric_type='test_loss'):
         metric_key = 'test_pred_logloss'
         ylim = [0, 2]
         ylabel = r'Test $\log_{10}$loss'
-        filename_suffix = ''
+        filename_suffix = '_logloss'
         title_y_offset = 0.02
 
         experiments = [
